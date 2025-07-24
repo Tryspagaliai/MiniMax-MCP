@@ -18,7 +18,7 @@ class MinimaxTimeoutError(MinimaxAPIError):
 
 class MinimaxValidationError(MinimaxAPIError):
     """Validation related errors."""
-    pass 
+    pass
 
 class MinimaxMcpError(MinimaxAPIError):
     pass

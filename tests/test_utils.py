@@ -39,12 +39,12 @@ def test_make_output_path():
     base_path = "/tmp/test_base"
     result = build_output_path(None, base_path, is_test=True)
     assert result == Path(base_path)
-    
+
     # Test with relative output_directory
     base_path = "/tmp/test_base"
     result = build_output_path("subdir", base_path, is_test=True)
     assert result == Path(base_path) / "subdir"
-    
+
     # Test with absolute output_directory (should ignore base_path)
     abs_path = "/absolute/path"
     result = build_output_path(abs_path, "/some/base/path", is_test=True)
@@ -53,11 +53,11 @@ def test_make_output_path():
     abs_path = "~/absolute/path"
     result = build_output_path(abs_path, "/some/base/path", is_test=True)
     assert result == Path(Path.home() / "absolute/path")
-    
+
     # Test with None base_path (should use desktop)
     result = build_output_path(None, None, is_test=True)
     assert result == Path.home() / "Desktop"
-    
+
 
 
 def test_find_similar_filenames():
@@ -98,7 +98,7 @@ def test_process_input_file():
         test_file = temp_path / "test.mp3"
 
         with open(test_file, "wb") as f:
-            f.write(b"\xff\xfb\x90\x64\x00")
+            f.write(b"\\\xff\\\xfb\\\x90\\\x64\\\x00")
 
         result = process_input_file(str(test_file))
         assert result == test_file

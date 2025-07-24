@@ -57,7 +57,7 @@ api_client = MinimaxAPIClient(api_key, api_host)
         text (str): The text to convert to speech.
         voice_id (str, optional): The id of the voice to use. For example, "male-qn-qingse"/"audiobook_female_1"/"cute_boy"/"Charming_Lady"...
         model (string, optional): The model to use.
-        speed (float, optional): Speed of the generated audio. Controls the speed of the generated speech. Values range from 0.5 to 2.0, with 1.0 being the default speed. 
+        speed (float, optional): Speed of the generated audio. Controls the speed of the generated speech. Values range from 0.5 to 2.0, with 1.0 being the default speed.
         vol (float, optional): Volume of the generated audio. Controls the volume of the generated speech. Values range from 0 to 10, with 1 being the default volume.
         pitch (int, optional): Pitch of the generated audio. Controls the speed of the generated speech. Values range from -12 to 12, with 0 being the default speed.
         emotion (str, optional): Emotion of the generated audio. Controls the emotion of the generated speech. Values range ["happy", "sad", "angry", "fearful", "disgusted", "surprised", "neutral"], with "happy" being the default emotion.
@@ -113,7 +113,7 @@ def text_to_audio(
     try:
         response_data = api_client.post("/v1/t2a_v2", json=payload)
         audio_data = response_data.get('data', {}).get('audio', '')
-        
+
         if not audio_data:
             raise MinimaxRequestError(f"Failed to get audio data from response")
         if resource_mode == RESOURCE_MODE_URL:
@@ -128,7 +128,7 @@ def text_to_audio(
         output_path = build_output_path(output_directory, base_path)
         output_file_name = build_output_file("t2a", text, output_path, format)
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         with open(output_path / output_file_name, "wb") as f:
             f.write(audio_bytes)
 
@@ -136,7 +136,7 @@ def text_to_audio(
             type="text",
             text=f"Success. File saved as: {output_path / output_file_name}. Voice used: {voice_id}",
         )
-        
+
     except MinimaxAPIError as e:
         return TextContent(
             type="text",
@@ -158,12 +158,12 @@ def list_voices(
 ):
     try:
         response_data = api_client.post("/v1/get_voice", json={'voice_type': voice_type})
-        
+
         system_voices = response_data.get('system_voice', []) or []
         voice_cloning_voices = response_data.get('voice_cloning', []) or []
         system_voice_list = []
         voice_cloning_voice_list = []
-        
+
         for voice in system_voices:
             system_voice_list.append(f"Name: {voice.get('voice_name')}, ID: {voice.get('voice_id')}")
         for voice in voice_cloning_voices:
@@ -173,7 +173,7 @@ def list_voices(
             type="text",
             text=f"Success. System Voices: {system_voice_list}, Voice Cloning Voices: {voice_cloning_voice_list}"
         )
-        
+
     except MinimaxAPIError as e:
         return TextContent(
             type="text",
@@ -197,7 +197,7 @@ def list_voices(
     """
 )
 def voice_clone(
-    voice_id: str, 
+    voice_id: str,
     file: str,
     text: str,
     output_directory: str = None,
@@ -220,7 +220,7 @@ def voice_clone(
                 files = {'file': f}
                 data = {'purpose': 'voice_clone'}
                 response_data = api_client.post("/v1/files/upload", files=files, data=data)
-            
+
         file_id = response_data.get("file",{}).get("file_id")
         if not file_id:
             raise MinimaxRequestError(f"Failed to get file_id from upload response")
@@ -235,7 +235,7 @@ def voice_clone(
             payload["model"] = DEFAULT_SPEECH_MODEL
 
         response_data = api_client.post("/v1/voice_clone", json=payload)
-        
+
         if not response_data.get("demo_audio"):
             return TextContent(
                 type="text",
@@ -250,7 +250,7 @@ def voice_clone(
         output_path = build_output_path(output_directory, base_path)
         output_file_name = build_output_file("voice_clone", text, output_path, "wav")
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         with open(output_path / output_file_name, "wb") as f:
             f.write(requests.get(response_data.get("demo_audio")).content)
 
@@ -258,7 +258,7 @@ def voice_clone(
             type="text",
             text=f"Voice cloned successfully: Voice ID: {voice_id}, demo audio saved as: {output_path / output_file_name}"
         )
-        
+
     except MinimaxAPIError as e:
         return TextContent(
             type="text",
@@ -345,7 +345,7 @@ def generate_video(
         }
         if first_frame_image:
             payload["first_frame_image"] = first_frame_image
-        
+
         response_data = api_client.post("/v1/video_generation", json=payload)
         task_id = response_data.get("task_id")
         if not task_id:
@@ -361,11 +361,11 @@ def generate_video(
         file_id = None
         max_retries = 30  # 10 minutes total (30 * 20 seconds)
         retry_interval = 20  # seconds
-        
+
         for attempt in range(max_retries):
             status_response = api_client.get(f"/v1/query/video_generation?task_id={task_id}")
             status = status_response.get("status")
-            
+
             if status == "Fail":
                 raise MinimaxRequestError(f"Video generation failed for task_id: {task_id}")
             elif status == "Success":
@@ -373,7 +373,7 @@ def generate_video(
                 if file_id:
                     break
                 raise MinimaxRequestError(f"Missing file_id in success response for task_id: {task_id}")
-            
+
             # Still processing, wait and retry
             time.sleep(retry_interval)
 
@@ -383,7 +383,7 @@ def generate_video(
         # step3: fetch video result
         file_response = api_client.get(f"/v1/files/retrieve?file_id={file_id}")
         download_url = file_response.get("file", {}).get("download_url")
-        
+
         if not download_url:
             raise MinimaxRequestError(f"Failed to get download URL for file_id: {file_id}")
         if resource_mode == RESOURCE_MODE_URL:
@@ -398,7 +398,7 @@ def generate_video(
 
         video_response = requests.get(download_url)
         video_response.raise_for_status()
-        
+
         with open(output_path / output_file_name, "wb") as f:
             f.write(video_response.content)
 
@@ -512,7 +512,7 @@ def text_to_image(
             raise MinimaxRequestError("Prompt is required")
 
         payload = {
-            "model": model, 
+            "model": model,
             "prompt": prompt,
             "aspect_ratio": aspect_ratio,
             "n": n,
@@ -521,7 +521,7 @@ def text_to_image(
 
         response_data = api_client.post("/v1/image_generation", json=payload)
         image_urls = response_data.get("data",{}).get("image_urls",[])
-        
+
         if not image_urls:
             raise MinimaxRequestError("No images generated")
         if resource_mode == RESOURCE_MODE_URL:
@@ -531,23 +531,23 @@ def text_to_image(
             )
         output_path = build_output_path(output_directory, base_path)
         output_file_names = []
-        
+
         for i, image_url in enumerate(image_urls):
             output_file_name = build_output_file("image", f"{i}_{prompt}", output_path, "jpg")
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            
+
             image_response = requests.get(image_url)
             image_response.raise_for_status()
-            
+
             with open(output_file_name, 'wb') as f:
                 f.write(image_response.content)
             output_file_names.append(output_file_name)
-            
+
         return TextContent(
             type="text",
             text=f"Success. Images saved as: {output_file_names}"
         )
-        
+
     except MinimaxAPIError as e:
         return TextContent(
             type="text",

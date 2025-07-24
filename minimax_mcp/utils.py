@@ -31,7 +31,7 @@ def build_output_path(
     # Set default base_path to desktop if not provided
     if base_path is None:
         base_path = str(Path.home() / "Desktop")
-    
+
     # Handle output path based on output_directory
     if output_directory is None:
         output_path = Path(os.path.expanduser(base_path))
@@ -157,7 +157,7 @@ def play(
             "linux or windows: install it from https://ffmpeg.org/"
         )
         raise ValueError(message)
-    
+
     args = ["ffplay", "-autoexit", "-", "-nodisp"]
     proc = subprocess.Popen(
         args=args,

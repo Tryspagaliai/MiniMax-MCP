@@ -6,10 +6,10 @@ from minimax_mcp.exceptions import MinimaxAuthError, MinimaxRequestError
 
 class MinimaxAPIClient:
     """Base client for making requests to Minimax API."""
-    
+
     def __init__(self, api_key: str, api_host: str):
         """Initialize the API client.
-        
+
         Args:
             api_key: The API key for authentication
             api_host: The API host URL
@@ -23,27 +23,27 @@ class MinimaxAPIClient:
         })
 
     def _make_request(
-        self, 
-        method: str, 
-        endpoint: str, 
+        self,
+        method: str,
+        endpoint: str,
         **kwargs
     ) -> Dict[str, Any]:
         """Make an HTTP request to the Minimax API.
-        
+
         Args:
             method: HTTP method (GET, POST, etc.)
             endpoint: API endpoint path
             **kwargs: Additional arguments to pass to requests
-            
+
         Returns:
             API response data as dictionary
-            
+
         Raises:
             MinimaxAuthError: If authentication fails
             MinimaxRequestError: If the request fails
         """
         url = f"{self.api_host}{endpoint}"
-        
+
         # Set Content-Type based on whether files are being uploaded
         files = kwargs.get('files')
         if not files:
@@ -52,15 +52,15 @@ class MinimaxAPIClient:
             # Remove Content-Type header for multipart/form-data
             # requests library will set it automatically with the correct boundary
             self.session.headers.pop('Content-Type', None)
-        
+
         try:
             response = self.session.request(method, url, **kwargs)
-            
+
             # Check for other HTTP errors
             response.raise_for_status()
-            
+
             data = response.json()
-            
+
             # Check API-specific error codes
             base_resp = data.get("base_resp", {})
             if base_resp.get("status_code") != 0:
@@ -80,16 +80,16 @@ class MinimaxAPIClient:
                             f"API Error: {base_resp.get('status_code')}-{base_resp.get('status_msg')} "
                             f"Trace-Id: {response.headers.get('Trace-Id')}"
                         )
-                
+
             return data
-            
+
         except requests.exceptions.RequestException as e:
             raise MinimaxRequestError(f"Request failed: {str(e)}")
-            
+
     def get(self, endpoint: str, **kwargs) -> Dict[str, Any]:
         """Make a GET request."""
         return self._make_request("GET", endpoint, **kwargs)
-        
+
     def post(self, endpoint: str, **kwargs) -> Dict[str, Any]:
         """Make a POST request."""
-        return self._make_request("POST", endpoint, **kwargs) 
+        return self._make_request("POST", endpoint, **kwargs)
