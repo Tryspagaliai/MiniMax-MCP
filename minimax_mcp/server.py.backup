@@ -1,7 +1,7 @@
 """
 MiniMax MCP Server
 
-[WARNING] IMPORTANT: This server connects to Minimax API endpoints which may involve costs.
+⚠️ IMPORTANT: This server connects to Minimax API endpoints which may involve costs.
 Any tool that makes an API call is clearly marked with a cost warning. Please follow these guidelines:
 
 1. Only use these tools when users specifically ask for them
